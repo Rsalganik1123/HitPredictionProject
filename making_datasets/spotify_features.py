@@ -11,6 +11,7 @@ def main():
     cache_token = token.get_access_token()
     spotify = spotipy.Spotify(cache_token)
     sp = spotipy.Spotify(auth=cache_token)
+    
     # extra_token = spotipy.Spotify(token[''])
     billboard_written = 0 
     non_billboard_written = 0 
@@ -55,10 +56,12 @@ def main():
     counter = 0 
     for i in range(0,m):
         if(token._is_token_expired): 
-            token = util.oauth2.SpotifyClientCredentials(client_id='824c8ba3f33e47898aa268ef9c7ad753', client_secret='fff42fc95229427daf9d9d26ad9da4ba')
-            cache_token = token.get_access_token()
-            spotify = spotipy.Spotify(cache_token)
-            sp = spotipy.Spotify(auth=cache_token)
+            # token = util.oauth2.SpotifyClientCredentials(client_id='824c8ba3f33e47898aa268ef9c7ad753', client_secret='fff42fc95229427daf9d9d26ad9da4ba')
+            # cache_token = token.get_access_token()
+            # spotify = spotipy.Spotify(cache_token)
+            # sp = spotipy.Spotify(auth=cache_token)
+            refresh()
+
         artist = artist_l[i]
         track = track_l[i]
         #score = score_l[i]
@@ -140,23 +143,31 @@ def main():
     print("non billboard has ", non_billboard_written, "entries")
     print('skipped', skipped)
 def test(): 
-    token = util.oauth2.SpotifyClientCredentials(client_id='824c8ba3f33e47898aa268ef9c7ad753', client_secret='fff42fc95229427daf9d9d26ad9da4ba')
-    cache_token = token.get_access_token()
-    spotify = spotipy.Spotify(cache_token)
-    sp = spotipy.Spotify(auth=cache_token)
-    if(token._is_token_expired): 
-        print("EXPIRED")
-        token = util.oauth2.SpotifyClientCredentials(client_id='824c8ba3f33e47898aa268ef9c7ad753', client_secret='fff42fc95229427daf9d9d26ad9da4ba')
-        cache_token = token.get_access_token()
-        spotify = spotipy.Spotify(cache_token)
-        sp = spotipy.Spotify(auth=cache_token)
-        print(token)
-    if( not token._is_token_expired): print("NOT EXPIRED")
+    # token = util.oauth2.SpotifyClientCredentials(client_id='824c8ba3f33e47898aa268ef9c7ad753', client_secret='fff42fc95229427daf9d9d26ad9da4ba')
+    sp_auth = util.oauth2.SpotifyOAuth(client_id='824c8ba3f33e47898aa268ef9c7ad753', client_secret='fff42fc95229427daf9d9d26ad9da4ba', redirect_uri='127.0.0.1/callback')
+    token_info = sp_auth.get_cached_token()
+    if not token_info: 
+        # auth_url = sp_auth.get_authorize_url()
+        # print(auth_url)
+        # response = input('Paste the above link into your browser, then paste the redirect url here: ')
+        code = sp_auth.parse_response_code("https://example.com/v1/refresh")
+        token_info = sp_auth.get_access_token(code)
+
+        token = token_info['access_token']
+        
+    if sp_auth._is_token_expired: 
+        token_info = sp_auth.refresh_access_token(token_info['refresh_token'])
+        print("WAS EXPIRED, NOW", sp_auth._is_token_expired)
+    
+    token_info = sp_auth.get_cached_token()
+    
+    
+
+    sp = spotipy.Spotify(auth=token) 
+    # if( not token._is_token_expired): print("NOT EXPIRED")
 
     found = sp.search(q='artist:' + "Selena Gomez", type='artist')
     items = found['artists']['items'][0]['followers']['total']#['external_urls']
-
-    print(items)
            
 def test2(): 
     csv = pd.read_csv("../Datasets/Combo+Spotify+Followers.csv")
@@ -167,4 +178,4 @@ def test2():
     print("not_billboard", len(not_billboard))
     print('total', len(csv))
 # main()
-# test2() 
+test() 
