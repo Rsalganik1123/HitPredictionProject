@@ -13,6 +13,9 @@ class Song:
         self.artistName = None
         self.title = title
         self.year = None
+        self.rank = None 
+        self.weeks = None
+        self.new = None
 def populate(chart): 
     outputFile = open('BillboardCSV.csv', 'w')
     # csvRowString = ""
@@ -36,9 +39,9 @@ def main():
     
 
     # outputFile = open('BillboardCSV.csv', 'a+')
-    csvRowString = "Title,ArtistName" + "\n"
+    csvRowString = "Title,ArtistName,Rank,Weeks,isNew" + "\n"
     # outputFile.write(csvRowString)
-    with open('../Datasets/BillboardCSV1990.csv', 'a') as outputFile: 
+    with open('../Datasets/Billboard1990AddedFeat.csv', 'a') as outputFile: 
         outputFile.write(csvRowString)
         for i in range(1000): 
             offset = random.randint(1, 520) #1508 for 1990, 468 for 2010 , 260 for 2014
@@ -47,11 +50,17 @@ def main():
             print(date_str)
             chart = billboard.ChartData('hot-100', date = date_str)
             print(chart[:5])
-            for s in chart: 
+            for i in range(len(chart)): 
+                s = chart[i]
                 csvRowString = ""
                 song = Song(s.title.replace(",", " ").lower())
+                if s.isNew:
+                    song.new = 1 
+                else: song.new = 0 
                 song.artistName = s.artist.lower()
-                csvRowString += song.title + "," + song.artistName + "\n"
+                song.rank = s.rank
+                song.weeks = s.weeks  
+                csvRowString += song.title + "," + song.artistName + "," + str(song.rank) + ","+ str(song.weeks) + "," + song.new + "\n"
                 outputFile.write(csvRowString)
             time.sleep(10)
     
@@ -77,10 +86,13 @@ def main():
     #     time.sleep(10)
     # outputFile.close() 
 
-# def test():
-    # chart = billboard.ChartData('hot-100')
+def test():
+    chart = billboard.ChartData('hot-100')
     # ChartData(name, date=None, fetch=True, timeout=25)
     # print(chart)
+    for i in chart[:1]: 
+        print(type(i), i.weeks, i.isNew)
+
     
-main()
-# test()
+# main()
+test()

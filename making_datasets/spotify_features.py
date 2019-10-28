@@ -8,7 +8,7 @@ import argparse
 def weeksSince(): 
     return 0 
  
-def writing(read_file, write_file, write_file_mode, write_headers, cutoff): 
+def writing(read_file, write_file, write_file_mode, write_headers, cutoff, first): 
     skipped = 0 
     token = util.oauth2.SpotifyClientCredentials(client_id='824c8ba3f33e47898aa268ef9c7ad753', client_secret='fff42fc95229427daf9d9d26ad9da4ba')
     cache_token = token.get_access_token()
@@ -42,6 +42,7 @@ def writing(read_file, write_file, write_file_mode, write_headers, cutoff):
     #score_fl = []
     #label_fl = []
     followers = []
+    popularity = [] 
     danceability = np.zeros([m,1])
     energy = np.zeros([m,1])
     key = np.zeros([m,1])
@@ -75,6 +76,8 @@ def writing(read_file, write_file, write_file_mode, write_headers, cutoff):
         if track_id2 != []:
             if artist_id2 != []: 
                 follower_count = artist_id2[0]['followers']['total']
+                pop_val = artist_id2[0]['popularity']
+                popularity.append(pop_val)
                 followers.append(follower_count)
                 # print('fc', artist_l[i], follower_count)
             else: followers.append(0)
@@ -125,13 +128,13 @@ def writing(read_file, write_file, write_file_mode, write_headers, cutoff):
                     skipped += 1
     with open(write_file, write_file_mode) as f:
         sp_writer = csv.writer(f, delimiter=',', lineterminator = '\n')
-        sp_writer.writerow(write_headers)
+        if first: sp_writer.writerow(write_headers)
         for i in range(0,j-1):
-            sp_writer.writerow([artist_fl[i],track_fl[i],year_fl[i],month_fl[i],danceability[i][0],energy[i][0],key[i][0],loudness[i][0],mode[i][0],speechiness[i][0],acousticness[i][0],instrumentalness[i][0],liveness[i][0],valence[i][0],tempo[i][0], followers[i], target_l[i][0]]) #followers[i],  
+            sp_writer.writerow([artist_fl[i],track_fl[i],year_fl[i],month_fl[i],danceability[i][0],energy[i][0],key[i][0],loudness[i][0],mode[i][0],speechiness[i][0],acousticness[i][0],instrumentalness[i][0],liveness[i][0],valence[i][0],tempo[i][0], followers[i], popularity[i], target_l[i][0]]) #followers[i],  
     print("billboard has ", billboard_written, "entries")
     print("non billboard has ", non_billboard_written, "entries")
     print('skipped', skipped)
- 
+    return counter 
 def makeHeaders(args): 
     write_headers = ['Artist','Track','Year','Month','Danceability','Energy','Key','Loudness','Mode','Speechiness','Acousticness','Instrumentalness','Liveness','Valence','Tempo']
     if args.followers: 
@@ -181,14 +184,14 @@ def main():
     
     
     
-    
+    print('features will be', write_headers)
     print('WRITING TO FILE -> 0')
-    writing(read_file0, write_file, 'a+', write_headers, 100000)
-    csv0 = pd.read_csv("/Users/Owner/Desktop/School/2019-2020/COMP400/Code/Datasets/Spotify/Followers.csv")
-    not_billboard = len(csv0.loc[csv0['Target'] == 0])
-    print(not_billboard)
+    wrote = writing(read_file0, write_file, 'w+', write_headers, 100000, True)
+    # csv0 = pd.read_csv("/Users/Owner/Desktop/School/2019-2020/COMP400/Code/Datasets/Spotify/F+P.csv")
+    # not_billboard = len(csv0.loc[csv0['Target'] == 0])
+    # print(not_billboard)
     print('WRITING TO FILE -> 1')
-    writing(read_file1, write_file, 'a+', write_headers, not_billboard)
+    writing(read_file1, write_file, 'a+', write_headers, wrote, False)
 
 def test(): 
     # token = util.oauth2.SpotifyClientCredentials(client_id='824c8ba3f33e47898aa268ef9c7ad753', client_secret='fff42fc95229427daf9d9d26ad9da4ba')
@@ -213,8 +216,7 @@ def test():
     # if( not token._is_token_expired): print("NOT EXPIRED")
 
     found = sp.search(q='artist:' + "Selena Gomez", type='artist')
-    items = found['artists']['items'][0]['followers']['total']#['external_urls']
-           
+    items = found['artists']['items'][0]['followers']['total']#['external_urls']         
 def test2(): 
     csv = pd.read_csv("../Datasets/Combo+Spotify+Followers.csv")
     billboard = csv.loc[csv['Target'] == 1]
@@ -223,5 +225,14 @@ def test2():
     print("billboard", len(billboard))
     print("not_billboard", len(not_billboard))
     print('total', len(csv))
+def test3():
+    token = util.oauth2.SpotifyClientCredentials(client_id='824c8ba3f33e47898aa268ef9c7ad753', client_secret='fff42fc95229427daf9d9d26ad9da4ba')
+    cache_token = token.get_access_token()
+    spotify = spotipy.Spotify(cache_token)
+    sp = spotipy.Spotify(auth=cache_token) 
+    found = sp.search(q='artist:' + "Selena Gomez", type='artist')
+    item = found['artists']['items'][0]['popularity']
+    print(item)
 
 main()
+# test3() 
