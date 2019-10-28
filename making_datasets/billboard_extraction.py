@@ -3,6 +3,7 @@ import billboard
 from datetime import datetime, date, timedelta
 import time
 import random 
+import csv
 
 class Song:
     # songCount = 0
@@ -39,10 +40,12 @@ def main():
     
 
     # outputFile = open('BillboardCSV.csv', 'a+')
-    csvRowString = "Title,ArtistName,Rank,Weeks,isNew" + "\n"
+    # csvRowString = "Title,ArtistName,Rank,Weeks,isNew" + "\n"
     # outputFile.write(csvRowString)
-    with open('../Datasets/Billboard1990AddedFeat.csv', 'a') as outputFile: 
-        outputFile.write(csvRowString)
+    with open('../Datasets/Billboard1990AddedFeat3.csv', 'a') as outputFile: 
+        writer = csv.writer(outputFile, delimiter=',', lineterminator = '\n')
+        writer.writerow(["Title","ArtistName","Rank","Weeks","isNew"])
+        # outputFile.write(csvRowString)
         for i in range(1000): 
             offset = random.randint(1, 520) #1508 for 1990, 468 for 2010 , 260 for 2014
             date = start_time - week*offset
@@ -52,39 +55,18 @@ def main():
             print(chart[:5])
             for i in range(len(chart)): 
                 s = chart[i]
-                csvRowString = ""
+                # csvRowString = ""
                 song = Song(s.title.replace(",", " ").lower())
                 if s.isNew:
-                    song.new = 1 
-                else: song.new = 0 
-                song.artistName = s.artist.lower()
+                    song.new = '1' 
+                else: song.new = '0' 
+                song.artistName = s.artist.replace(",", " ").lower()
                 song.rank = s.rank
                 song.weeks = s.weeks  
-                csvRowString += song.title + "," + song.artistName + "," + str(song.rank) + ","+ str(song.weeks) + "," + song.new + "\n"
-                outputFile.write(csvRowString)
+                # csvRowString += song.title + "," + song.artistName + "," + str(song.rank) + ","+ str(song.weeks) + "," + song.new + "\n"
+                writer.writerow([song.title,song.artistName, song.rank, song.weeks, song.new ])
+                # outputFile.write(csvRowString)
             time.sleep(10)
-    
-    
-    # chart = billboard.ChartData('hot-100')
-    # while chart.previousDate:
-    #     date_str= chsart.date 
-    #     print(date_str) 
-    #     chart = billboard.ChartData('hot-100', date=date_str)
-    #     date = datetime.strptime(chart.date, fmt)
-    #     if date > end_time: 
-            
-    #         # populate(chart)
-    #         for s in chart: 
-    #             csvRowString = ""
-    #             song = Song(s.title)
-    #             song.artistName = s.artist
-    #             csvRowString += song.title + "," + song.artistName + "\n"
-    #             outputFile.write(csvRowString)
-    #     else:    
-    #         break
-    #     chart = billboard.ChartData('hot-100', date = chart.previousDate)
-    #     time.sleep(10)
-    # outputFile.close() 
 
 def test():
     chart = billboard.ChartData('hot-100')
@@ -94,5 +76,5 @@ def test():
         print(type(i), i.weeks, i.isNew)
 
     
-# main()
-test()
+main()
+# test()
