@@ -42,7 +42,7 @@ def main():
     # outputFile = open('BillboardCSV.csv', 'a+')
     # csvRowString = "Title,ArtistName,Rank,Weeks,isNew" + "\n"
     # outputFile.write(csvRowString)
-    with open('../Datasets/Billboard1990AddedFeat3.csv', 'a') as outputFile: 
+    with open('../Datasets/Billboard/Billboard1990AddedFeat3.csv', 'a') as outputFile: 
         writer = csv.writer(outputFile, delimiter=',', lineterminator = '\n')
         writer.writerow(["Title","ArtistName","Rank","Weeks","isNew"])
         # outputFile.write(csvRowString)
