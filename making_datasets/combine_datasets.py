@@ -19,23 +19,23 @@ class Song:
 
 def createSet(data, mode, writeMode): 
     with open('/Users/Owner/Desktop/School/2019-2020/COMP400/Code/Datasets/Combo/Only' + str(mode)+'.csv', writeMode) as fn:
-        # writer_csv = csv.writer(fn, delimiter=',', lineterminator = '\n')
-        fn.write("Title,ArtistName,Rank,Weeks,isNew,Target" + "\n") 
+        writer_csv = csv.writer(fn, delimiter=',', lineterminator = '\n')
+        # fn.write("Title,ArtistName,Rank,Weeks,isNew,Target" + "\n") 
        
-        # writer_csv.writerow(["Title","ArtistName","Rank","Weeks","isNew","Target"])
+        writer_csv.writerow(["Title","ArtistName","Rank","Weeks","isNew","Target"])
          
-        # for node in data: 
-        #     #Title, ArtistName, Rank, Weeks,isNew,Target
-        #     # song = Song(val[0])
-        #     # song.artistName = val[1]
-        #     # song.rank = 0
-        #     # song.new = '1'
-        #     # song.weeks = 0
-        #     target = str(mode)
-        #     # print([node[0],node[1], node[2], node[3], node[4],target])
-        #     writer.writerow([node[0],node[1], node[2], node[3], node[4],target])
-        #     # CSV_row = val[0]+ ","+ val[1] + ","+ '0' + ","+ '0' + ","+ str(mode) + '\n' 
-        #     # csv.write(CSV_row)
+        for node in data: 
+            #Title, ArtistName, Rank, Weeks,isNew,Target
+            # song = Song(val[0])
+            # song.artistName = val[1]
+            # song.rank = 0
+            # song.new = '1'
+            # song.weeks = 0
+            target = str(mode)
+            # print([node[0],node[1], node[2], node[3], node[4],target])
+            writer_csv.writerow([node[0],node[1], node[2], node[3], node[4],target])
+            # CSV_row = val[0]+ ","+ val[1] + ","+ '0' + ","+ '0' + ","+ str(mode) + '\n' 
+            # csv.write(CSV_row)
          
         #     # for song in data: 
         #     #     #Title, ArtistName, Rank, Weeks,isNew,Target
@@ -64,6 +64,7 @@ def read2(file, mode, checkList):
             track = track.split('Featuring')[0]
             track = track.split('(')[0]
             artist = artist.split('Featuring')[0]
+            artist = artist.split('featuring')[0]
             artist = artist.split('(')[0]
             artist = artist.split('&')[0]
             song = Song(track)

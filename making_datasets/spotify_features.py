@@ -15,7 +15,7 @@ def writing(read_file, write_file, write_file_mode, write_headers, cutoff, first
     spotify = spotipy.Spotify(cache_token)
     sp = spotipy.Spotify(auth=cache_token)
     
-    # extra_token = spotipy.Spotify(token[''])
+    
     billboard_written = 0 
     non_billboard_written = 0 
     artist_l = [] 
@@ -26,10 +26,9 @@ def writing(read_file, write_file, write_file_mode, write_headers, cutoff, first
         line_count = 0
         for row in csv_reader:
             if line_count != 0:
-                # print(row[0])
-                # print(row[1])
                 track_l.append(row[0]) 
                 artist_l.append(row[1])
+
                 target_l.append(row[2])
             line_count += 1 
 
@@ -39,8 +38,7 @@ def writing(read_file, write_file, write_file_mode, write_headers, cutoff, first
     track_fl = []
     year_fl = []
     month_fl  = []
-    #score_fl = []
-    #label_fl = []
+    
     followers = []
     popularity = [] 
     danceability = np.zeros([m,1])
@@ -155,33 +153,33 @@ def makeHeaders(args):
 def main():
     #**************PARSING ARGS*********************
     parser = argparse.ArgumentParser()
-    parser.add_argument("-followers", help="add follower count",
-                    action="store_true")
-    parser.add_argument("-weeks", help="add weeks on billboard",
-                    action="store_true")
-    parser.add_argument('-popularity', help="add popularity score",
-                    action="store_true")
-    parser.add_argument('-release', help="add release date", 
-                    action="store_true")
-    parser.add_argument('-rank', help="add rank on chart", 
-                    action="store_true")
-    parser.add_argument('-before', help="add before on billboard", 
-                    action="store_true")
-    parser.add_argument('-filename', help="specify file name",
-                    action="append")
+    # parser.add_argument("-followers", help="add follower count",
+                    # action="store_true")
+    # parser.add_argument("-weeks", help="add weeks on billboard",
+                    # action="store_true")
+    # parser.add_argument('-popularity', help="add popularity score",
+                    # action="store_true")
+    # parser.add_argument('-release', help="add release date", 
+    #                 action="store_true")
+    # parser.add_argument('-rank', help="add rank on chart", 
+    #                 action="store_true")
+    # parser.add_argument('-before', help="add before on billboard", 
+    #                 action="store_true")
+    # parser.add_argument('-filename', help="specify file name",
+    #                 action="append")
     args = parser.parse_args()
 
     #**************INITIALIZATION************************
     read_file0 = '/Users/Owner/Desktop/School/2019-2020/COMP400/Code/Datasets/Combo/Only0.csv'
     read_file1 = '/Users/Owner/Desktop/School/2019-2020/COMP400/Code/Datasets/Combo/Only1.csv'
     write_file = ""
-    write_headers = makeHeaders(args)
-    if args.filename: 
-        write_file = '/Users/Owner/Desktop/School/2019-2020/COMP400/Code/Datasets/Spotify/'+args.filename[0]+'.csv'
-    else: 
-        write_file = '/Users/Owner/Desktop/School/2019-2020/COMP400/Code/Datasets/Spotify/Followers.csv'
+    # write_headers = makeHeaders(args)
+    write_headers = ['Artist','Track','Year','Month','Danceability','Energy','Key','Loudness','Mode','Speechiness','Acousticness','Instrumentalness','Liveness','Valence','Tempo', 'Weeks', 'Rank', 'isNew', 'Target'] #'Followers'
+    # if args.filename: 
+    #     write_file = '/Users/Owner/Desktop/School/2019-2020/COMP400/Code/Datasets/Spotify/'+args.filename[0]+'.csv'
+    # else: 
+    write_file = '/Users/Owner/Desktop/School/2019-2020/COMP400/Code/Datasets/Spotify/B+F+P.csv'
     # write_headers = ['Artist','Track','Year','Month','Danceability','Energy','Key','Loudness','Mode','Speechiness','Acousticness','Instrumentalness','Liveness','Valence','Tempo','Target'] #'Followers'
-    
     
     
     print('features will be', write_headers)

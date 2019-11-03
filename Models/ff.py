@@ -24,6 +24,6 @@ class Network(nn.Module):
         
         return x
 
-# model  = Network() 
-# print(model)
+model  = Network() 
+print(model)
 
