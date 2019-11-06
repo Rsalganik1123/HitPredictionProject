@@ -70,8 +70,8 @@ def writing(read_file, write_file, write_file_mode, headers, cutoff, first):
             if line_count == 0: 
                 line_count += 1
                 continue
-            if line_count > 10: exit 
-            title,artist,rank,week,isNew,target = row[0],row[1],row[2],row[3],row[4], row[5]
+            if line_count > 2000: break 
+            title,artist,rank,week,isNew,target = row[0].strip(),row[1].strip(),row[2],row[3],row[4], row[5]
             track_info = sp.search(q='artist:' + artist + ' track:' + title, type='track')
             artist_info = sp.search(q='artist:' + artist, type='artist')
             try: 
@@ -94,24 +94,27 @@ def writing(read_file, write_file, write_file_mode, headers, cutoff, first):
                 liveness = feat['liveness']
                 valence = feat['valence']
                 tempo = feat['tempo']
-                print("inside", artist, target)
+                # print("inside", artist, target)
                 with open(write_file, write_file_mode) as f: 
                     sp_writer = csv.writer(f, delimiter=',', lineterminator = '\n')
-                    if first: sp_writer.writerow(write_headers)
-                    print(artist, target)
-                    sp_writer.writerow([title, artist,year,month,danceability,energy,key,loudness,mode,speechiness,acousticness,instrumentalness,liveness,valence,tempo, followers, popularity, target])   
-
-            except: print('OOOPS')
-            line_count += 1
+                    if first: 
+                        sp_writer.writerow(headers)
+                        first = False 
+                    print(line_count, artist, target)
+                    sp_writer.writerow([title, artist,year,month,danceability,energy,key,loudness,mode,speechiness,acousticness,instrumentalness,liveness,valence,tempo, followers, popularity, rank, week, isNew, target])   
+                    line_count += 1
+            except: print('something went wrong loading', artist)
+            
 
             
 
 def main(): 
     read_file0 = '/Users/Owner/Desktop/School/2019-2020/COMP400/Code/Datasets/Combo/Only0.csv'
     read_file1 = '/Users/Owner/Desktop/School/2019-2020/COMP400/Code/Datasets/Combo/Only1.csv'
-    write_headers = ['Artist','Track','Year','Month','Danceability','Energy','Key','Loudness','Mode','Speechiness','Acousticness','Instrumentalness','Liveness','Valence','Tempo', 'Weeks', 'Rank', 'isNew', 'Target'] #'Followers'
+    write_headers = ['Artist','Track','Year','Month','Danceability','Energy','Key','Loudness','Mode','Speechiness','Acousticness','Instrumentalness','Liveness','Valence','Tempo',  'Followers', 'Popularity','Ranks', 'Weeks', 'isNew', 'Target'] #'Followers'
     write_file = '/Users/Owner/Desktop/School/2019-2020/COMP400/Code/Datasets/Spotify/B+F+P.csv'
     f1 = pd.read_csv(read_file0)
-    writing(read_file1, write_file, 'w+', write_headers, len(f1), True)
+    # writing(read_file1, write_file, 'a+', write_headers, len(f1), True)
+    writing(read_file0, write_file, 'a+', write_headers, len(f1), False)
 
 main()

@@ -4,6 +4,7 @@ import re
 import itertools
 from itertools import islice
 
+artists = {} 
 class Song:
     # songCount = 0
     # songDictionary = {}
@@ -22,7 +23,7 @@ def createSet(data, mode, writeMode):
         writer_csv = csv.writer(fn, delimiter=',', lineterminator = '\n')
         # fn.write("Title,ArtistName,Rank,Weeks,isNew,Target" + "\n") 
        
-        writer_csv.writerow(["Title","ArtistName","Rank","Weeks","isNew","Target"])
+        writer_csv.writerow(["Title","ArtistName","Ranks","Weeks","isNew","Target"])
          
         for node in data: 
             #Title, ArtistName, Rank, Weeks,isNew,Target
@@ -63,19 +64,26 @@ def read2(file, mode, checkList):
                 continue 
             track = track.split('Featuring')[0]
             track = track.split('(')[0]
+            
             artist = artist.split('Featuring')[0]
             artist = artist.split('featuring')[0]
+            artist = artist.split('+')[0]
             artist = artist.split('(')[0]
             artist = artist.split('&')[0]
             song = Song(track)
             song.artistName = artist
+            
             if mode == 1: 
                 song.rank = line[2]
-                song.new = line[3]
-                song.weeks = line[4]
+                song.weeks = line[3]
+                song.new = line[4]
+                artists[artist] = 1 
             else: 
-                song.rank = 0 
-                song.new = 1
+                song.rank = 0
+                if artist in artists: 
+                    #print(artists[artist])
+                    song.new = 0 
+                else: song.new = 1
                 song.weeks = 0
             node = (song.title, song.artistName, song.rank, song.weeks, song.new)
             if node not in this_list and node not in checkList: 

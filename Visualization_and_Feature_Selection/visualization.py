@@ -20,7 +20,7 @@ def scatterPlot(csv, v1, v2, class_label):
     sns.scatterplot(x=v1, y=v2, hue=class_label,data=csv)
     plt.show()
 
-def histogram(csv, v): 
+def histogram(csv): 
     csv.hist() 
     # sns.distplot(csv[v], bins=10, kde=False) 
     plt.show()
@@ -41,19 +41,19 @@ def barPlot(csv, val, class_label):
 def main(): 
 
     # csv1 = pd.read_csv("../Datasets/Spotify/Followers.csv")
-    csv2 = pd.read_csv('../Datasets/Billboard1990AddedFeat3.csv')
+    csv2 = pd.read_csv('./Datasets/Spotify/B+F+P.csv')
     # print(csv2['isNew'])
-    histogram(csv2, 'isNew')
+    #histogram(csv2, 'isNew')
     # billboard = csv1.loc[csv1['Target'] == 1]
     # not_billboard = csv1.loc[csv1['Target'] == 0]
     # print(csv1.iloc[:, -1])
     # print("bb", len(billboard), "nb", len(not_billboard))
 
     # csv2 = pd.read_csv('./Datasets/complete_project_data.csv')
-    # histogram(csv1,'Tempo')
+    # histogram(csv2)
     # scatterPlot(csv1, 'Followers', 'Liveness', 'Target')
-    # corrMatrix(csv1)
+    corrMatrix(csv2)
     # compareDatasets(csv1.iloc[1:, :-1], csv2.iloc[1: , :-1])
-    # barPlot(csv1, 'Energy', 'Target')
+    #barPlot(csv2, 'Year', 'Target')
 
 main() 
