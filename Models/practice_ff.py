@@ -1,3 +1,5 @@
+import comet_ml
+from comet_ml import Experiment
 import torch 
 import torchvision
 import torchvision.transforms as transforms 
@@ -11,6 +13,23 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.utils import shuffle
 import torch.utils.data as data_utils
+
+
+
+hyper_params = {
+    "sequence_length": 28,
+    "input_size": 18,
+    "hidden_size": 6,
+    "num_layers": 2,
+    "num_classes": 2,
+    "batch_size": 4,
+    "num_epochs": 100,
+    "learning_rate": 0.001
+}
+#experiment = Experiment(project_name="practice_ff")
+experiment = Experiment(api_key="6DEbIEUEuvzFpDeEnVuF3UEV9",
+                        project_name="Billboard_ff", workspace="rsalganik1123")
+experiment.log_parameters(hyper_params)
 
 
 
@@ -65,23 +84,40 @@ class Net(nn.Module):
 
         return x
 
-net = Net(18,10, 2).float() 
+#net = Net(18,10, 2).float() 
 criterion = nn.CrossEntropyLoss()
 
-#optimizer = optim.SGD(net.parameters(), lr = 0.001, momentum = 0.9)
-optimizer = torch.optim.Adam(net.parameters(), lr=0.01)
+net = Net(hyper_params['input_size'], hyper_params['hidden_size'], hyper_params['num_classes']).float()
 
-for epoch in range(100): 
-    running_loss = 0
-    for i, data in enumerate(train_loader): 
-        vals,labels = data 
-        optimizer.zero_grad() 
-        outputs = net(vals.float())
-        loss = criterion(outputs, labels)
-        loss.backward() 
-        optimizer.step()
-        running_loss += loss.item() 
-    print(epoch, running_loss/len(train_loader))
+#optimizer = optim.SGD(net.parameters(), lr = 0.001, momentum = 0.9)
+optimizer = torch.optim.Adam(net.parameters(), lr=0.001) #0.001 = 81% 
+
+with experiment.train(): 
+    for epoch in range(100): 
+        running_loss = 0
+        total = 0 
+        correct = 0 
+        for i, data in enumerate(train_loader): 
+            vals,labels = data 
+
+            #Forward + Backward + Optimize 
+            optimizer.zero_grad() 
+            outputs = net(vals.float())
+            loss = criterion(outputs, labels)
+            loss.backward() 
+            optimizer.step()
+            running_loss += loss.item() 
+
+            #Compute Train Accuracy 
+            _, predicted = torch.max(outputs.data, 1)
+            total += labels.size(0)
+            correct += (predicted == labels.data).sum() 
+
+            #Log to comet.ml
+        experiment.log_metric("accuracy", correct / total, step=i)
+        experiment.log_metric("loss", loss)
+        if epoch % 10 == 0: 
+            print(epoch, running_loss/len(train_loader))
         
 
 print('Finished Training')
@@ -91,15 +127,27 @@ torch.save(net.state_dict(), PATH)
 dataiter = iter(test_loader)
 images = labels = dataiter.next()
 net.load_state_dict(torch.load(PATH))
-correct = 0 
-total = 0 
-with torch.no_grad():
-    for data in test_loader: 
-        vals,labels = data
+with experiment.test() : 
+    correct = 0 
+    total = 0 
+    for vals, labels in test_loader: 
         outputs = net(vals.float())
         _, predicted = torch.max(outputs.data, 1)
         total += labels.size(0)
         correct += (predicted == labels).sum().item()
-print('Accuracy : %d %%' % (
-    100 * correct / total))
+
+    experiment.log_metric("accuracy", 100 * correct / total)
+    print('Test Accuracy of the model : %d %%' % (100 * correct / total))
+
+# correct = 0 
+# total = 0 
+# with torch.no_grad():
+#     for data in test_loader: 
+#         vals,labels = data
+#         outputs = net(vals.float())
+#         _, predicted = torch.max(outputs.data, 1)
+#         total += labels.size(0)
+#         correct += (predicted == labels).sum().item()
+# print('Accuracy : %d %%' % (
+#     100 * correct / total))
 
