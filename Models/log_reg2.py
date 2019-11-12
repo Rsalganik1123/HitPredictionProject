@@ -2,6 +2,7 @@ import sklearn
 import matplotlib.pyplot as plt
 import pandas as pd 
 from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import train_test_split
 import csv
 
 csv1 = pd.read_csv("./Datasets/Combo+Spotify.csv")

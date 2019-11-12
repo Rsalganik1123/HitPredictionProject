@@ -12,6 +12,7 @@ import torch.tensor as tnsr
 import pandas as pd 
 from sklearn.model_selection import train_test_split
 from sklearn.utils import shuffle
+from sklearn.preprocessing import StandardScaler
 import torch.utils.data as data_utils
 
 
@@ -27,17 +28,24 @@ hyper_params = {
     "learning_rate": 0.001
 }
 #experiment = Experiment(project_name="practice_ff")
-experiment = Experiment(api_key="6DEbIEUEuvzFpDeEnVuF3UEV9",
-                        project_name="Billboard_ff", workspace="rsalganik1123")
-experiment.log_parameters(hyper_params)
-
-
+#experiment = Experiment(api_key="6DEbIEUEuvzFpDeEnVuF3UEV9",
+                        #project_name="Billboard_ff", workspace="rsalganik1123")
+#experiment.log_parameters(hyper_params)
 
 ###################################################
 
 csv = pd.read_csv("./Datasets/Spotify/B+F+P.csv")
+ 
 pd_data, pd_labels = csv.iloc[:, 2:-1], csv.iloc[:, -1]
+
 X_train, X_test, y_train, y_test = train_test_split(pd_data, pd_labels, test_size=.2)
+
+# sc = StandardScaler()
+# X_train = sc.fit_transform(X_train)
+# X_test = sc.transform(X_test)
+
+# print(type(X_train)) 
+# print(type(X_test))
 
 #Convert to Numpy
 y_train = y_train.to_numpy().ravel() 
@@ -45,22 +53,22 @@ y_test = y_test.to_numpy().ravel()
 X_train = X_train.to_numpy()
 X_test = X_test.to_numpy() 
 
-#convert to pytorch 
+# #convert to pytorch 
 X_train = torch.from_numpy(X_train)
 X_test = torch.from_numpy(X_test)
 y_train = torch.from_numpy(y_train).type(torch.LongTensor)
 y_test = torch.from_numpy(y_test).type(torch.LongTensor)
 
-#Load tensor dataset 
+# #Load tensor dataset 
 train = torch.utils.data.TensorDataset(X_train, y_train)
 test = torch.utils.data.TensorDataset(X_test, y_test)
 
-#Loaders 
+# #Loaders 
 train_loader = torch.utils.data.DataLoader(train, batch_size=4, shuffle=True)
 test_loader = torch.utils.data.DataLoader(test, batch_size=4, shuffle=True)
 
-dataiter = iter(train_loader)
-vals, lables = dataiter.next() 
+# dataiter = iter(train_loader)
+# vals, lables = dataiter.next() 
 
 
 class Net(nn.Module): 
@@ -84,70 +92,70 @@ class Net(nn.Module):
 
         return x
 
-#net = Net(18,10, 2).float() 
+net = Net(18,10, 2).float() 
 criterion = nn.CrossEntropyLoss()
 
 net = Net(hyper_params['input_size'], hyper_params['hidden_size'], hyper_params['num_classes']).float()
 
-#optimizer = optim.SGD(net.parameters(), lr = 0.001, momentum = 0.9)
+# #optimizer = optim.SGD(net.parameters(), lr = 0.001, momentum = 0.9)
 optimizer = torch.optim.Adam(net.parameters(), lr=0.001) #0.001 = 81% 
 
-with experiment.train(): 
-    for epoch in range(100): 
-        running_loss = 0
-        total = 0 
-        correct = 0 
-        for i, data in enumerate(train_loader): 
-            vals,labels = data 
-
-            #Forward + Backward + Optimize 
-            optimizer.zero_grad() 
-            outputs = net(vals.float())
-            loss = criterion(outputs, labels)
-            loss.backward() 
-            optimizer.step()
-            running_loss += loss.item() 
-
-            #Compute Train Accuracy 
-            _, predicted = torch.max(outputs.data, 1)
-            total += labels.size(0)
-            correct += (predicted == labels.data).sum() 
-
-            #Log to comet.ml
-        experiment.log_metric("accuracy", correct / total, step=i)
-        experiment.log_metric("loss", loss)
-        if epoch % 10 == 0: 
-            print(epoch, running_loss/len(train_loader))
-        
-
-print('Finished Training')
-PATH = './ff_1.pth'
-torch.save(net.state_dict(), PATH)
-
-dataiter = iter(test_loader)
-images = labels = dataiter.next()
-net.load_state_dict(torch.load(PATH))
-with experiment.test() : 
-    correct = 0 
+# #with experiment.train(): 
+for epoch in range(100): 
+    running_loss = 0
     total = 0 
-    for vals, labels in test_loader: 
+    correct = 0 
+    for i, data in enumerate(train_loader): 
+        vals,labels = data 
+
+        #Forward + Backward + Optimize 
+        optimizer.zero_grad() 
         outputs = net(vals.float())
+        loss = criterion(outputs, labels)
+        loss.backward() 
+        optimizer.step()
+        running_loss += loss.item() 
+
+        #Compute Train Accuracy 
         _, predicted = torch.max(outputs.data, 1)
         total += labels.size(0)
-        correct += (predicted == labels).sum().item()
+        correct += (predicted == labels.data).sum() 
 
-    experiment.log_metric("accuracy", 100 * correct / total)
-    print('Test Accuracy of the model : %d %%' % (100 * correct / total))
+#         #Log to comet.ml
+#     #experiment.log_metric("accuracy", correct / total, step=i)
+#     #experiment.log_metric("loss", loss)
+    if epoch % 10 == 0: 
+        print(epoch, running_loss/len(train_loader))
+        
 
+# print('Finished Training')
+# PATH = './ff_1.pth'
+# torch.save(net.state_dict(), PATH)
+
+# dataiter = iter(test_loader)
+# images = labels = dataiter.next()
+# net.load_state_dict(torch.load(PATH))
+# #with experiment.test() : 
 # correct = 0 
 # total = 0 
-# with torch.no_grad():
-#     for data in test_loader: 
-#         vals,labels = data
-#         outputs = net(vals.float())
-#         _, predicted = torch.max(outputs.data, 1)
-#         total += labels.size(0)
-#         correct += (predicted == labels).sum().item()
-# print('Accuracy : %d %%' % (
-#     100 * correct / total))
+# for vals, labels in test_loader: 
+#     outputs = net(vals.float())
+#     _, predicted = torch.max(outputs.data, 1)
+#     total += labels.size(0)
+#     correct += (predicted == labels).sum().item()
+
+# #experiment.log_metric("accuracy", 100 * correct / total)
+# print('Test Accuracy of the model : %d %%' % (100 * correct / total))
+
+# # correct = 0 
+# # total = 0 
+# # with torch.no_grad():
+# #     for data in test_loader: 
+# #         vals,labels = data
+# #         outputs = net(vals.float())
+# #         _, predicted = torch.max(outputs.data, 1)
+# #         total += labels.size(0)
+# #         correct += (predicted == labels).sum().item()
+# # print('Accuracy : %d %%' % (
+# #     100 * correct / total))
 

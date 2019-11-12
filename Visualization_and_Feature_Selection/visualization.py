@@ -51,9 +51,9 @@ def main():
 
     # csv2 = pd.read_csv('./Datasets/complete_project_data.csv')
     # histogram(csv2)
-    # scatterPlot(csv1, 'Followers', 'Liveness', 'Target')
+    #scatterPlot(csv2, 'Followers', 'Liveness', 'Target')
     corrMatrix(csv2)
     # compareDatasets(csv1.iloc[1:, :-1], csv2.iloc[1: , :-1])
-    #barPlot(csv2, 'Year', 'Target')
-
+    #barPlot(csv2, 'Followers', 'Target')
+    
 main() 

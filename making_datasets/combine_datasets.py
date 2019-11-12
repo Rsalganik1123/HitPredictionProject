@@ -26,30 +26,8 @@ def createSet(data, mode, writeMode):
         writer_csv.writerow(["Title","ArtistName","Ranks","Weeks","isNew","Target"])
          
         for node in data: 
-            #Title, ArtistName, Rank, Weeks,isNew,Target
-            # song = Song(val[0])
-            # song.artistName = val[1]
-            # song.rank = 0
-            # song.new = '1'
-            # song.weeks = 0
             target = str(mode)
-            # print([node[0],node[1], node[2], node[3], node[4],target])
             writer_csv.writerow([node[0],node[1], node[2], node[3], node[4],target])
-            # CSV_row = val[0]+ ","+ val[1] + ","+ '0' + ","+ '0' + ","+ str(mode) + '\n' 
-            # csv.write(CSV_row)
-         
-        #     # for song in data: 
-        #     #     #Title, ArtistName, Rank, Weeks,isNew,Target
-        #     #     # print(val)
-        #     #     # song = s.title
-        #     #     # song.artistName = val[1]
-        #     #     # song.rank = val[2]
-        #     #     # song.new = val[3]
-        #     #     # song.weeks = val[4]
-        #     #     target = str(mode)
-        #     #     writer.writerow([song.title,song.artistName, song.rank, song.weeks, song.new,target])
-        #     #     # CSV_row = val[0]+ ","+ val[1] + ","+ str(val[2]) + ","+ str(val[3]) + ","+ str(mode) + '\n' 
-        #     #     # csv.write(CSV_row)
 
 def read2(file, mode, checkList): 
     this_list = [] 
@@ -81,7 +59,7 @@ def read2(file, mode, checkList):
             else: 
                 song.rank = 0
                 if artist in artists: 
-                    #print(artists[artist])
+                    print(artist)
                     song.new = 0 
                 else: song.new = 1
                 song.weeks = 0
