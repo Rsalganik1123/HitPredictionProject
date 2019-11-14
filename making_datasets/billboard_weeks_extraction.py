@@ -23,8 +23,8 @@ def main():
     with open('./Datasets/Billboard/ContinuousChart.csv', 'a+') as outputFile: 
         writer = csv.writer(outputFile, delimiter=',', lineterminator = '\n')
         if first: writer.writerow(["Date","Title","ArtistName","Rank","Weeks","isNew"])
-        chart = billboard.ChartData('hot-100', date ='2019-10-26') 
-        while '2018' not in chart.previousDate: 
+        chart = billboard.ChartData('hot-100', date ='2017-12-30') 
+        while '2016' not in chart.previousDate: 
             chart = billboard.ChartData('hot-100', date = chart.previousDate)
             print(chart.previousDate, '\n', chart[:5])
             for i in range(len(chart)): 
