@@ -6,6 +6,7 @@ import pandas as pd
 import argparse 
 
 
+
 def writing(read_file, write_file, write_file_mode, headers, cutoff, first): 
     #*************** LOADING SPOTIFY AUTHORIZATION ***************# 
     token = util.oauth2.SpotifyClientCredentials(client_id='824c8ba3f33e47898aa268ef9c7ad753', client_secret='fff42fc95229427daf9d9d26ad9da4ba')
@@ -17,24 +18,6 @@ def writing(read_file, write_file, write_file_mode, headers, cutoff, first):
     sp = spotipy.Spotify(auth=cache_token)
 
     #*************** INITIALIZING VARIABLES ********************#
-    # artists = [] 
-    # titles = [] 
-    # isNews = [] 
-    # weeks = [] 
-    # ranks = [] 
-    # targets = [] 
-    # line_count = 0 
-    # with open(read_file, "r") as f: 
-    #     reader = csv.reader(f, delimiter=",", )
-    #     for row in reader: 
-    #         if line_count != 0: 
-    #             titles.append(row[0])
-    #             artists.append(row[1])
-    #             ranks.append(row[2])
-    #             weeks.append(row[3])
-    #             isNews.append(row[4])
-    #             targets.append(row[5])
-    #         line_count += 1 
     
     m = cutoff 
     targets_f = [] 
@@ -44,19 +27,7 @@ def writing(read_file, write_file, write_file_mode, headers, cutoff, first):
     ranks_f = [] 
     weeks_f = [] 
     isNews_f = [] 
-    # followers = []
-    # popularity = [] 
-    # danceability = np.zeros([m,1])
-    # energy = np.zeros([m,1])
-    # key = np.zeros([m,1])
-    # loudness = np.zeros([m,1])
-    # mode = np.zeros([m,1])
-    # speechiness = np.zeros([m,1])
-    # acousticness = np.zeros([m,1])
-    # instrumentalness = np.zeros([m,1])
-    # liveness = np.zeros([m,1])
-    # valence = np.zeros([m,1])
-    # tempo = np.zeros([m,1])
+    
 
     line_count = 0 
     with open(read_file, "r") as f: 

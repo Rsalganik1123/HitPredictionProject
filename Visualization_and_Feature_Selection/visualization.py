@@ -26,7 +26,7 @@ def histogram(csv):
     plt.show()
 
 def corrMatrix(csv): 
-    sns.heatmap(csv.corr(), annot=True)
+    sns.heatmap(csv.corr(method='spearman'), annot=True)
     plt.show()
 
 def barPlot(csv, val, class_label): 
