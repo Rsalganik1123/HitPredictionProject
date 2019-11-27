@@ -30,6 +30,7 @@ hyper_params = {
     "num_epochs": 100,
     "learning_rate": 0.001
 }
+
 #experiment = Experiment(project_name="practice_ff")
 #experiment = Experiment(api_key="6DEbIEUEuvzFpDeEnVuF3UEV9",
                         #project_name="Billboard_ff", workspace="rsalganik1123")
@@ -40,7 +41,8 @@ hyper_params = {
 csv = pd.read_csv("./Datasets/Spotify/B+F+P.csv")
 csv = shuffle(csv, random_state=44) 
  
-pd_data, pd_labels = csv.iloc[:, 3:-5], csv.iloc[:, -1]
+pd_data = csv[['Year','Month','Danceability','Energy','Key','Loudness','Mode','Speechiness','Acousticness','Instrumentalness','Liveness','Valence','Tempo']]
+pd_labels =  csv['Target']
 
 X_train, X_test, y_train, y_test = train_test_split(pd_data, pd_labels, test_size=.2, random_state = 44)
 
@@ -103,7 +105,7 @@ criterion = nn.CrossEntropyLoss()
 
 # #optimizer = optim.SGD(net.parameters(), lr = 0.001, momentum = 0.9)
 optimizer = torch.optim.Adam(net.parameters(), lr=0.001) #0.001 = 81% 
-
+train_loss = [] 
 #with experiment.train(): 
 for epoch in range(100): 
     running_loss = 0
@@ -128,10 +130,13 @@ for epoch in range(100):
             #Log to comet.ml
     #experiment.log_metric("accuracy", correct / total, step=i)
     #experiment.log_metric("loss", loss)
+    train_loss.append(running_loss/len(train_loader))
     if epoch % 10 == 0: 
         print(epoch, running_loss/len(train_loader))
         
 
+plt.plot(train_loss)
+plt.show()
 print('Finished Training')
 PATH = './ff_1.pth'
 torch.save(net.state_dict(), PATH)

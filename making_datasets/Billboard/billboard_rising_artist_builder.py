@@ -33,7 +33,7 @@ def load_rising_artists():
         csv_reader = csv.reader(f, delimiter=",")
         for line in csv_reader: 
             artist = line[1].lower() 
-            if 'Artist' in artist: continue 
+            if 'artist' in artist: continue 
             if artist not in artists: 
                 artists.append(artist)
             else: continue 

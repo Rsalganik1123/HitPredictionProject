@@ -41,7 +41,13 @@ def barPlot(csv, val, class_label):
 def main(): 
 
     # csv1 = pd.read_csv("../Datasets/Spotify/Followers.csv")
-    csv2 = pd.read_csv('./Datasets/Spotify/B+F+P.csv')
+    csv2 = pd.read_csv('./Datasets/Spotify/Rising.csv')
+    only0 = csv2.loc[csv2['Target'] == 0]
+    only1 = csv2.loc[csv2['Target'] == 1]
+    frames = [only1, only0]
+    csv3 = pd.concat(frames)
+    #csv3 = only0.iloc[:100, :] + only1.iloc[:100, :]
+
     # print(csv2['isNew'])
     #histogram(csv2, 'isNew')
     # billboard = csv1.loc[csv1['Target'] == 1]
@@ -52,7 +58,7 @@ def main():
     # csv2 = pd.read_csv('./Datasets/complete_project_data.csv')
     # histogram(csv2)
     #scatterPlot(csv2, 'Followers', 'Liveness', 'Target')
-    corrMatrix(csv2)
+    corrMatrix(csv3)
     # compareDatasets(csv1.iloc[1:, :-1], csv2.iloc[1: , :-1])
     #barPlot(csv2, 'Followers', 'Target')
     

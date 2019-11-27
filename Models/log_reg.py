@@ -13,7 +13,7 @@ import sys
 
 def main(): 
     # *************** Load Data *****************
-    data = pd.read_csv("./Datasets/Spotify/B+F+P.csv")
+    data = pd.read_csv("./Datasets/Spotify/Rising.csv")
     data = shuffle(data, random_state = 44) 
     all_X = data[['Danceability','Energy','Key','Loudness','Mode','Speechiness','Acousticness','Instrumentalness','Liveness','Valence','Tempo']]
     #all_X = data[['Followers']]
@@ -36,29 +36,29 @@ def main():
     #***************** Classifier****************
     classifier = LogisticRegression()
 
-    #***************** Pipeline ***************** 
-    pipeline = Pipeline([
-        ('scaler', sc), 
-        ('pca', pca),
-        ('classifier', classifier)
-    ])
+    # #***************** Pipeline ***************** 
+    # pipeline = Pipeline([
+    #     ('scaler', sc), 
+    #     ('pca', pca),
+    #     ('classifier', classifier)
+    # ])
 
-    #**************** Grid Search ***************
-    print("Running grid search")
-    parameters_grid = {}
-    parameters_grid['classifier__penalty'] =  ('l2', 'l1')
-    parameters_grid['pca__n_components'] = (2,3,4,5)
+    # #**************** Grid Search ***************
+    # print("Running grid search")
+    # parameters_grid = {}
+    # parameters_grid['classifier__penalty'] =  ('l2', 'l1')
+    # parameters_grid['pca__n_components'] = (2,3,4,5)
     
 
-    #*************** Validation Pipeline ***********
-    grid_search = GridSearchCV(pipeline, parameters_grid, cv=5, n_jobs = 1, scoring='accuracy')
-    grid_search.fit(X_train, y_train)
+    # #*************** Validation Pipeline ***********
+    # grid_search = GridSearchCV(pipeline, parameters_grid, cv=5, n_jobs = 1, scoring='accuracy')
+    # grid_search.fit(X_train, y_train)
 
-    cvres = grid_search.cv_results_
+    # cvres = grid_search.cv_results_
     
    
-    for accuracy, params in zip(cvres['mean_test_score'],cvres['params']):
-        print('Mean accuracy: ', accuracy,'  using: ',params)
+    # for accuracy, params in zip(cvres['mean_test_score'],cvres['params']):
+    #     print('Mean accuracy: ', accuracy,'  using: ',params)
 
     # # ********** Accuracy Summaries *************
     
