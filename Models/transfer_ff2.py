@@ -15,11 +15,12 @@ from sklearn.preprocessing import StandardScaler
 import torch.utils.data as data_utils
 import os 
 from sklearn.metrics import roc_auc_score, roc_curve, average_precision_score, accuracy_score, auc 
-from torch.autograd import Variable
+from sklearn.model_selection import validation_curve
+from sklearn.linear_model import Ridge
+
 os.environ['KMP_DUPLICATE_LIB_OK']='True'
 
-
- 
+#*******************LOAD DATA *******************
 csv = pd.read_csv("./Datasets/Spotify/Rising.csv")
 csv = shuffle(csv, random_state = 2)
 pd_data = csv[['Year','Month','Danceability','Energy','Key','Loudness','Mode','Speechiness','Acousticness','Instrumentalness','Liveness','Valence','Tempo']]
@@ -40,7 +41,7 @@ y_val = y_val.to_numpy().ravel()
 # X_train = X_train.to_numpy()
 # X_test = X_test.to_numpy() 
 
-# #convert to pytorch 
+ #convert to pytorch 
 X_train = torch.from_numpy(X_train)
 X_test = torch.from_numpy(X_test)
 X_val = torch.from_numpy(X_val)
@@ -48,16 +49,17 @@ y_train = torch.from_numpy(y_train).type(torch.LongTensor)
 y_test = torch.from_numpy(y_test).type(torch.LongTensor)
 y_val = torch.from_numpy(y_val).type(torch.LongTensor)
 
-# #Load tensor dataset 
+ #Load tensor dataset 
 train = torch.utils.data.TensorDataset(X_train, y_train)
 val = torch.utils.data.TensorDataset(X_val, y_val)
 test = torch.utils.data.TensorDataset(X_test, y_test)
 
-# #Loaders 
+ #Loaders 
 train_loader = torch.utils.data.DataLoader(train, batch_size=1, shuffle=True)
 val_loader = torch.utils.data.DataLoader(val, batch_size=1, shuffle=True)
 test_loader = torch.utils.data.DataLoader(test, batch_size=1, shuffle=True)
 
+#********************CREATE NET**************
 class Net(nn.Module): 
     def __init__(self, input_size, hidden_size, num_classes):
         super(Net,self).__init__()
@@ -78,12 +80,14 @@ class Net(nn.Module):
         x = self.fc2(x)
 
         return x
-
+#Initialize 
 net = Net(len(pd_data.columns),6, 2).float()
 
+#Load parameters from previously trained NN 
 PATH = './ff_1.pth'
 net.load_state_dict(torch.load(PATH))
 
+#Function returns which label is actually gonna be assigned
 all_categories = [0, 1]
 def categoryFromOutput(output): 
     top_n, top_i = output.topk(1)
@@ -94,8 +98,11 @@ def categoryFromOutput(output):
 criterion = nn.CrossEntropyLoss()
 optimizer = torch.optim.Adam(net.parameters(), lr=0.001)
 y_score, y = [], [] 
-auc_score = [] 
-for epoch in range(3): 
+v_y_score, v_y = [], []
+t_auc, t_precision, t_acc = [], [], []  
+v_acc, v_precision, v_auc = [], [], []
+#**************TRAINING*****************
+for epoch in range(7):
     running_loss = 0
     total = 0 
     correct = 0 
@@ -117,43 +124,72 @@ for epoch in range(3):
         y_score.append(categoryFromOutput(outputs.cpu()))
         y.append(labels.cpu().numpy())
         
+        #VALIDATION LOOP  
+    for data in val_loader: 
+        vals,labels = data
+        outputs = net(vals.float())
+        loss = criterion(outputs, labels)
+        running_loss += loss.item()
+        _, predicted = torch.max(outputs.data, 1)
+        total += labels.size(0)
+        correct += (predicted == labels).sum().item()
+
+        v_y_score.append(categoryFromOutput(outputs.cpu()))
+        v_y.append(labels.cpu().numpy())
+
+    fpr, tpr, threshold = roc_curve(v_y, v_y_score)
+    roc_auc = auc(fpr, tpr)
+    v_precision.append(average_precision_score(v_y, v_y_score))
+    v_auc.append(roc_auc_score(v_y, v_y_score))
+    v_acc.append(accuracy_score(v_y, v_y_score))
+
+    print("***********EPOCH", epoch , "************")
+    #print ("average_precision_score v: " + str(average_precision_score(v_y, v_y_score)))
+    print ("roc_auc_score v: " + str(roc_auc_score(v_y, v_y_score)))
+    print ("accuracy v: " + str(accuracy_score(v_y, v_y_score)) ) 
+        
 
     fpr, tpr, threshold = roc_curve(y, y_score)
     roc_auc = auc(fpr, tpr)
-    print ("average_precision_score : " + str(average_precision_score(y, y_score)))
-    print ("roc_auc_score : " + str(roc_auc_score(y, y_score)))
-    print ("accuracy : " + str(accuracy_score(y, y_score)) ) 
+    t_precision.append(average_precision_score(y, y_score))
+    t_auc.append(roc_auc_score(y, y_score))
+    t_acc.append(accuracy_score(y, y_score))
+    
+    #print ("average_precision_score t: " + str(average_precision_score(y, y_score)))
+    print ("roc_auc_score t: " + str(roc_auc_score(y, y_score)))
+    print ("accuracy t: " + str(accuracy_score(y, y_score)) ) 
 
-# for e in range(5):
-#     running_loss = 0
-#     total = 0 
-#     correct = 0   
-#     with torch.no_grad():
-#         for data in val_loader: 
-#             vals,labels = data
-#             outputs = net(vals.float())
-#             loss = criterion(outputs, labels)
-#             running_loss += loss.item()
-#             _, predicted = torch.max(outputs.data, 1)
-#             total += labels.size(0)
-#             correct += (predicted == labels).sum().item()
-#         val_acc.append()
-#         val_loss.append(running_loss/len(val_loader))
 
-# plt.plot(val_loss)
-# plt.show()
+plt.plot(t_acc, label="Training Accuracy",  color = 'green')
+plt.plot(v_acc, label = "Validation Accuracy", color='red')
+# plt.plot(t_auc, label="Training AUC",  color = 'blue')
+# plt.plot(v_auc, label = "Validation AUC", color='orange')
+plt.xlabel("Number of Steps")
+plt.legend(loc='lower left')
+plt.show()
 
-# correct = 0 
-# total = 0 
-# with torch.no_grad():
-#     for data in test_loader: 
-#         vals,labels = data
-#         outputs = net(vals.float())
-#         _, predicted = torch.max(outputs.data, 1)
-#         total += labels.size(0)
-#         correct += (predicted == labels).sum().item()
+correct = 0 
+total = 0 
+test_y_score, test_y = [], [] 
+ 
+with torch.no_grad():
+    for data in test_loader: 
+        vals,labels = data
+        outputs = net(vals.float())
+        _, predicted = torch.max(outputs.data, 1)
+        total += labels.size(0)
+        correct += (predicted == labels).sum().item()
+        test_y_score.append(categoryFromOutput(outputs.cpu()))
+        test_y.append(labels.cpu().numpy())
+
+print ("roc_auc_score v: " + str(roc_auc_score(test_y, test_y_score)))
+print ("accuracy v: " + str(accuracy_score(test_y, test_y_score)) ) 
+
 # print('Accuracy : %d %%' % (
 #     100 * correct / total))
+
+
+
 
 # classes = (0, 1)
 # class_correct = list(0. for i in range(2))
