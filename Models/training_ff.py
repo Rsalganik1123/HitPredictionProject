@@ -14,6 +14,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.utils import shuffle
 from sklearn.preprocessing import StandardScaler
 import torch.utils.data as data_utils
+from sklearn.metrics import roc_auc_score, roc_curve, average_precision_score, accuracy_score, auc, f1_score, recall_score
 import os 
 
 os.environ['KMP_DUPLICATE_LIB_OK']='True'
@@ -38,10 +39,10 @@ hyper_params = {
 
 ###################################################
 
-csv = pd.read_csv("./Datasets/Spotify/B+F+P.csv")
+csv = pd.read_csv("./Datasets/Spotify/Rising.csv")
 csv = shuffle(csv, random_state=44) 
  
-pd_data = csv[['Year','Month','Danceability','Energy','Key','Loudness','Mode','Speechiness','Acousticness','Instrumentalness','Liveness','Valence','Tempo']]
+pd_data = csv[['Danceability','Energy','Key','Loudness','Mode','Speechiness','Acousticness','Instrumentalness','Liveness','Valence','Tempo']]
 pd_labels =  csv['Target']
 
 X_train, X_test, y_train, y_test = train_test_split(pd_data, pd_labels, test_size=.2, random_state = 44)
@@ -70,12 +71,17 @@ train = torch.utils.data.TensorDataset(X_train, y_train)
 test = torch.utils.data.TensorDataset(X_test, y_test)
 
 # #Loaders 
-train_loader = torch.utils.data.DataLoader(train, batch_size=4, shuffle=True)
-test_loader = torch.utils.data.DataLoader(test, batch_size=4, shuffle=True)
+train_loader = torch.utils.data.DataLoader(train, batch_size=1, shuffle=True)
+test_loader = torch.utils.data.DataLoader(test, batch_size=1, shuffle=True)
 
 # dataiter = iter(train_loader)
 # vals, lables = dataiter.next() 
 
+all_categories = [0, 1]
+def categoryFromOutput(output): 
+    top_n, top_i = output.topk(1)
+    category_i = top_i[0].item() 
+    return all_categories[category_i]
 
 class Net(nn.Module): 
     def __init__(self, input_size, hidden_size, num_classes):
@@ -101,12 +107,11 @@ class Net(nn.Module):
 net = Net(len(pd_data.columns),6, 2).float() #18 normally for all features
 criterion = nn.CrossEntropyLoss()
 
-#net = Net(hyper_params['input_size'], hyper_params['hidden_size'], hyper_params['num_classes']).float()
 
-# #optimizer = optim.SGD(net.parameters(), lr = 0.001, momentum = 0.9)
 optimizer = torch.optim.Adam(net.parameters(), lr=0.001) #0.001 = 81% 
-train_loss = [] 
-#with experiment.train(): 
+ 
+y_score, y = [], [] 
+t_auc, t_precision, t_acc, t_recall, t_f1 = [], [], [], [], []    
 for epoch in range(100): 
     running_loss = 0
     total = 0 
@@ -126,44 +131,46 @@ for epoch in range(100):
         _, predicted = torch.max(outputs.data, 1)
         total += labels.size(0)
         correct += (predicted == labels.data).sum() 
-
-            #Log to comet.ml
-    #experiment.log_metric("accuracy", correct / total, step=i)
-    #experiment.log_metric("loss", loss)
-    train_loss.append(running_loss/len(train_loader))
-    if epoch % 10 == 0: 
-        print(epoch, running_loss/len(train_loader))
+        y_score.append(categoryFromOutput(outputs.cpu()))
+        y.append(labels.cpu().numpy())
+           
+    print("***********EPOCH", epoch , "************")
+    # print ("roc_auc_score: " + str(roc_auc_score(y, y_score)))
+    # print ("accuracy: " + str(accuracy_score(y, y_score)) ) 
         
+    t_precision.append(average_precision_score(y, y_score))
+    t_auc.append(roc_auc_score(y, y_score))
+    t_acc.append(accuracy_score(y, y_score))
+    t_recall.append(recall_score(y,y_score))
+    t_f1.append(f1_score(y,y_score))
+print("TRAINING INFO")
+print ("accuracy: " + str(accuracy_score(y, y_score)) ) 
+print ("roc_auc_score: " + str(roc_auc_score(y, y_score)))
+print ("average_precision_score: " + str(average_precision_score(y, y_score)))
+print('recall:' + str(recall_score(y, y_score)))
+print ('f1:' + str(f1_score(y, y_score)))
+        
+# plt.plot(train_loss)
+# plt.show()
 
-plt.plot(train_loss)
-plt.show()
 print('Finished Training')
-PATH = './ff_1.pth'
-torch.save(net.state_dict(), PATH)
-
-# dataiter = iter(test_loader)
-# images = labels = dataiter.next()
-# net.load_state_dict(torch.load(PATH))
-# #with experiment.test() : 
-# correct = 0 
-# total = 0 
-# for vals, labels in test_loader: 
-#     outputs = net(vals.float())
-#     _, predicted = torch.max(outputs.data, 1)
-#     total += labels.size(0)
-#     correct += (predicted == labels).sum().item()
-
-# #experiment.log_metric("accuracy", 100 * correct / total)
-# print('Test Accuracy of the model : %d %%' % (100 * correct / total))
-
-correct = 0 
-total = 0 
-with torch.no_grad():
-    for data in test_loader: 
-        vals,labels = data
-        outputs = net(vals.float())
-        _, predicted = torch.max(outputs.data, 1)
-        total += labels.size(0)
-        correct += (predicted == labels).sum().item()
-print('Accuracy : %d %%' % (
-    100 * correct / total))
+#PATH = './ff_1.pth'
+#torch.save(net.state_dict(), PATH)
+test = True
+if test: 
+    y_score, y = [], [] 
+    with torch.no_grad():
+        for data in test_loader: 
+            vals,labels = data
+            outputs = net(vals.float())
+            _, predicted = torch.max(outputs.data, 1)
+            total += labels.size(0)
+            correct += (predicted == labels).sum().item()
+            y_score.append(categoryFromOutput(outputs.cpu()))
+            y.append(labels.cpu().numpy())
+    print("TESTING INFO")
+    print ("accuracy: " + str(accuracy_score(y, y_score)) ) 
+    print ("roc_auc_score: " + str(roc_auc_score(y, y_score)))
+    print ("average_precision_score: " + str(average_precision_score(y, y_score)))
+    print('recall:' + str(recall_score(y, y_score)))
+    print ('f1:' + str(f1_score(y, y_score)))

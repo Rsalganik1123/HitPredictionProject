@@ -8,7 +8,8 @@ from sklearn.metrics import accuracy_score
 from sklearn.utils import shuffle
 import numpy as np
 from sklearn.pipeline import Pipeline
-from sklearn.metrics import classification_report
+from sklearn.metrics import classification_report, roc_auc_score
+
 import sys
 
 def main(): 
@@ -23,8 +24,8 @@ def main():
     
     # ************** Preprocessing ************** 
     sc = StandardScaler()
-    # X_train = sc.fit_transform(X_train)
-    # X_test = sc.transform(X_test)
+    X_train = sc.fit_transform(X_train)
+    X_test = sc.transform(X_test)
 
     pca = PCA() 
     # X_train = pca.fit_transform(X_train)
@@ -37,35 +38,35 @@ def main():
     classifier = LogisticRegression()
 
     # #***************** Pipeline ***************** 
-    # pipeline = Pipeline([
-    #     ('scaler', sc), 
-    #     ('pca', pca),
-    #     ('classifier', classifier)
-    # ])
+    pipeline = Pipeline([
+        # ('scaler', sc), 
+        # ('pca', pca),
+        ('classifier', classifier)
+    ])
 
     # #**************** Grid Search ***************
     # print("Running grid search")
-    # parameters_grid = {}
-    # parameters_grid['classifier__penalty'] =  ('l2', 'l1')
+    parameters_grid = {}
+    parameters_grid['classifier__penalty'] =  ('l2', 'l1')
     # parameters_grid['pca__n_components'] = (2,3,4,5)
     
 
     # #*************** Validation Pipeline ***********
-    # grid_search = GridSearchCV(pipeline, parameters_grid, cv=5, n_jobs = 1, scoring='accuracy')
-    # grid_search.fit(X_train, y_train)
+    grid_search = GridSearchCV(pipeline, parameters_grid, cv=5, n_jobs = 1, scoring='accuracy')
+    grid_search.fit(X_train, y_train)
 
-    # cvres = grid_search.cv_results_
-    
-   
-    # for accuracy, params in zip(cvres['mean_test_score'],cvres['params']):
-    #     print('Mean accuracy: ', accuracy,'  using: ',params)
+    cvres = grid_search.cv_results_
+    full_details = False 
+    if full_details: 
+        for accuracy, params in zip(cvres['mean_test_score'],cvres['params']):
+            print('Mean accuracy: ', accuracy,'  using: ',params)
 
-    # # ********** Accuracy Summaries *************
+    # ********** Accuracy Summaries *************
     
-    # print("training score: ", grid_search.best_score_ , '\n', "best parameters: ", grid_search.best_params_,'\n')
-    # best_model = grid_search.best_estimator_
-    # y_true, y_pred = y_test, best_model.predict(X_test)
-    # print(classification_report(y_true, y_pred))
+    print("training score: ", grid_search.best_score_ , '\n', "best parameters: ", grid_search.best_params_,'\n')
+    best_model = grid_search.best_estimator_
+    y_true, y_pred = y_test, best_model.predict(X_test)
+    print(classification_report(y_true, y_pred))
 
 
     # classifier.fit(X_train, y_train)
@@ -73,6 +74,7 @@ def main():
     
     # y_pred = classifier.predict(X_test)
     
-    # print('Accuracy' , accuracy_score(y_test, y_pred))
+    print('Accuracy' , accuracy_score(y_true, y_pred))
+    print('AUC:',  roc_auc_score(y_true, y_pred))
 
 main() 

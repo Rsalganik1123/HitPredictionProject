@@ -5,7 +5,7 @@ from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn import metrics
 from sklearn.ensemble import ExtraTreesClassifier
 from sklearn.pipeline import Pipeline
-from sklearn.metrics import classification_report
+from sklearn.metrics import classification_report, accuracy_score, roc_auc_score
 from sklearn.preprocessing import Normalizer, FunctionTransformer, StandardScaler
 from sklearn.utils import shuffle
 from sklearn.decomposition import PCA 
@@ -16,37 +16,40 @@ if not sys.warnoptions:
 
 
 def main():
-
     importances = {} 
     # ********** Load Data ************
     data = pd.read_csv("./Datasets/Spotify/B+F+P.csv")
-    data = shuffle(data, random_state=34)
-    all_X = data.iloc[:, 4:-5]
-    all_Y = data.iloc[:, -1]
-    X_train, X_test, y_train, y_test = train_test_split(all_X, all_Y, test_size=.2, random_state = 34)
+    # data = shuffle(data, random_state=34)
+    print(data.columns)
+    all_X = data[['Danceability', 'Energy', 'Key',
+       'Loudness', 'Mode', 'Speechiness', 'Acousticness', 'Instrumentalness',
+       'Liveness', 'Valence', 'Tempo']]
+    all_Y = data['Target']
+    X_train, X_test, y_train, y_test = train_test_split(all_X, all_Y, test_size=.2, shuffle=True, random_state = 34)
+
     # print(X_train)
     # ********* Ensemble Classifiers ************
     clf1 = ExtraTreesClassifier(random_state=34) 
 
     # ********** Preprocessing ****************
     sc = StandardScaler()
-    # X_train = sc.fit_transform(X_train)
-    # X_test = sc.transform(X_test)
+    X_train = sc.fit_transform(X_train)
+    X_test = sc.transform(X_test)
 
     pca = PCA()
 
     # ********** Feature Pipeline *************
     pipeline = Pipeline([
         # ('scaler', sc),
-        ('pca', pca),
+        # ('pca', pca),
         ('classifier', clf1)])
 
     # ********** Grid Search *************
     print('Running Grid Search now')
     parameters_grid = {}
     parameters_grid['classifier__criterion']= ('gini', 'entropy')
-    parameters_grid ['classifier__n_estimators'] = (10, 20, 100, 200)
-    parameters_grid ['pca__n_components']= (2,3,5,6)
+    parameters_grid ['classifier__n_estimators'] = (10, 20, 100, 200, 300)
+    # parameters_grid ['pca__n_components']= (2,3,5,6)
 
     # *********** Validation Pipeline ************
     grid_search = GridSearchCV(pipeline, parameters_grid, cv=2, n_jobs=-1, scoring='accuracy')
@@ -65,7 +68,8 @@ def main():
     best_model = grid_search.best_estimator_
     y_true, y_pred = y_test, best_model.predict(X_test)
     print('test score: ', classification_report(y_true, y_pred))
-    
+    print('Accuracy' , accuracy_score(y_true, y_pred))
+    print('AUC:',  roc_auc_score(y_true, y_pred))
     # clf1.fit(X_train, y_train)
     # for i in range(len(clf1.feature_importances_)): 
     #     f = clf1.feature_importances_[i]
