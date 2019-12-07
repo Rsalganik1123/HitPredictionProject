@@ -258,22 +258,3 @@ print('recall:' + str(recall_score(test_y, test_y_score)))
 print ('f1:' + str(f1_score(test_y, test_y_score)))
 
 
-
-
-# classes = (0, 1)
-# class_correct = list(0. for i in range(2))
-# class_total = list(0. for i in range(2))
-# with torch.no_grad(): 
-#     for data in test_loader: 
-#         vals,labels = data
-#         #print(labels)
-#         outputs = net(vals.float())
-#         _, predicted = torch.max(outputs.data, 1)
-#         c = (predicted == labels).squeeze() 
-#         for i in range(4): 
-#             label = labels[i]
-#             class_correct[label] += c[i].item()
-#             class_total[label] += 1
-
-# for i in range(2): 
-#     print('Accuracy of %5s: %2d %%' %(classes[i], 100*class_correct[i]/class_total[i]))

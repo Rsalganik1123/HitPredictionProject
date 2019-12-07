@@ -5,7 +5,7 @@ from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn import metrics
 from sklearn.ensemble import ExtraTreesClassifier
 from sklearn.pipeline import Pipeline
-from sklearn.metrics import classification_report, accuracy_score, roc_auc_score
+from sklearn.metrics import classification_report, roc_auc_score, roc_curve, average_precision_score, accuracy_score, auc, f1_score, recall_score, precision_score
 from sklearn.preprocessing import Normalizer, FunctionTransformer, StandardScaler
 from sklearn.utils import shuffle
 from sklearn.decomposition import PCA 
@@ -16,18 +16,18 @@ if not sys.warnoptions:
 
 
 def main():
-    importances = {} 
     # ********** Load Data ************
     data = pd.read_csv("./Datasets/Spotify/B+F+P.csv")
     # data = shuffle(data, random_state=34)
-    print(data.columns)
-    all_X = data[['Danceability', 'Energy', 'Key',
-       'Loudness', 'Mode', 'Speechiness', 'Acousticness', 'Instrumentalness',
-       'Liveness', 'Valence', 'Tempo']]
+    musical = True 
+    if musical: 
+        all_X = data[['Danceability','Energy','Key','Loudness','Mode','Speechiness','Acousticness','Instrumentalness','Liveness','Valence','Tempo']]
+    else:
+        all_X = data[['Followers', 'Popularity']]
     all_Y = data['Target']
-    X_train, X_test, y_train, y_test = train_test_split(all_X, all_Y, test_size=.2, shuffle=True, random_state = 34)
+    X_train, X_test, y_train, y_test = train_test_split(all_X, all_Y, test_size=.2, shuffle=True, random_state = 34, stratify=all_Y)
 
-    # print(X_train)
+    
     # ********* Ensemble Classifiers ************
     clf1 = ExtraTreesClassifier(random_state=34) 
 
@@ -52,7 +52,7 @@ def main():
     # parameters_grid ['pca__n_components']= (2,3,5,6)
 
     # *********** Validation Pipeline ************
-    grid_search = GridSearchCV(pipeline, parameters_grid, cv=2, n_jobs=-1, scoring='accuracy')
+    grid_search = GridSearchCV(pipeline, parameters_grid, cv=2, n_jobs=-1, scoring='precision')
     grid_search.fit(X_train,y_train)
 
     cvres = grid_search.cv_results_
@@ -64,10 +64,13 @@ def main():
 
     # ********** Accuracy Summaries *************
     
-    print("training score: ", grid_search.best_score_ , '\n', "best parameters: ", grid_search.best_params_,'\n')
+    print("training score: ", grid_search.scoring, grid_search.best_score_ , '\n', "best parameters: ", grid_search.best_params_,'\n')
     best_model = grid_search.best_estimator_
     y_true, y_pred = y_test, best_model.predict(X_test)
     print('test score: ', classification_report(y_true, y_pred))
+    print('Precision', precision_score(y_true, y_pred))
+    print('Recall', recall_score(y_true, y_pred))
+    print('F1', f1_score(y_true, y_pred))
     print('Accuracy' , accuracy_score(y_true, y_pred))
     print('AUC:',  roc_auc_score(y_true, y_pred))
     # clf1.fit(X_train, y_train)

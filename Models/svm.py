@@ -3,7 +3,7 @@ import pandas as pd
 from sklearn.decomposition import PCA 
 from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.preprocessing import StandardScaler
-from sklearn.linear_model import LogisticRegression
+from sklearn.svm import SVC
 from sklearn.metrics import accuracy_score
 from sklearn.utils import shuffle
 import numpy as np
@@ -39,7 +39,7 @@ def main():
     # print(explained_variance)
 
     #***************** Classifier****************
-    classifier = LogisticRegression()
+    classifier = SVC()
 
     # #***************** Pipeline ***************** 
     pipeline = Pipeline([
@@ -51,12 +51,13 @@ def main():
     # #**************** Grid Search ***************
     # print("Running grid search")
     parameters_grid = {}
-    parameters_grid['classifier__penalty'] =  ('l2', 'l1')
+    parameters_grid['classifier__C'] =  (0.1, 0.5, 1.0, 2.0)
+    parameters_grid['classifier__kernel'] = ('linear', 'poly', 'rbf', 'sigmoid') 
     # parameters_grid['pca__n_components'] = (2,3,4,5)
     
 
     # #*************** Validation Pipeline ***********
-    grid_search = GridSearchCV(pipeline, parameters_grid, cv=5, n_jobs = 1, scoring='precision')
+    grid_search = GridSearchCV(pipeline, parameters_grid, cv=5, n_jobs = 1, scoring='f1')
     grid_search.fit(X_train, y_train)
 
     cvres = grid_search.cv_results_

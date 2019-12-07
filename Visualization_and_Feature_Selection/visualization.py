@@ -23,6 +23,7 @@ def scatterPlot(csv, v1, v2, class_label):
 def histogram(csv): 
     csv.hist() 
     # sns.distplot(csv[v], bins=10, kde=False) 
+    plt.subplots_adjust(bottom=0.2, right=0.8, top=0.9)
     plt.show()
 
 def corrMatrix(csv): 
@@ -40,12 +41,16 @@ def barPlot(csv, val, class_label):
 
 def main(): 
 
-    # csv1 = pd.read_csv("../Datasets/Spotify/Followers.csv")
+    csv1 = pd.read_csv("./Datasets/Spotify/B+F+P.csv")
+    # csv2 = csv2[['Danceability','Energy','Key','Loudness','Mode','Speechiness','Acousticness','Instrumentalness','Liveness','Valence','Tempo']]
     csv2 = pd.read_csv('./Datasets/Spotify/Rising.csv')
-    only0 = csv2.loc[csv2['Target'] == 0]
-    only1 = csv2.loc[csv2['Target'] == 1]
-    frames = [only1, only0]
-    csv3 = pd.concat(frames)
+    csv2 = csv2[['Danceability','Energy','Key','Loudness','Mode','Speechiness','Acousticness','Instrumentalness','Liveness','Valence','Tempo']]
+
+    histogram(csv2)
+    # only0 = csv2.loc[csv2['Target'] == 0]
+    # only1 = csv2.loc[csv2['Target'] == 1]
+    # frames = [only1, only0]
+    # csv3 = pd.concat(frames)
     #csv3 = only0.iloc[:100, :] + only1.iloc[:100, :]
 
     # print(csv2['isNew'])
@@ -58,7 +63,7 @@ def main():
     # csv2 = pd.read_csv('./Datasets/complete_project_data.csv')
     # histogram(csv2)
     #scatterPlot(csv2, 'Followers', 'Liveness', 'Target')
-    corrMatrix(csv3)
+    # corrMatrix(csv3)
     # compareDatasets(csv1.iloc[1:, :-1], csv2.iloc[1: , :-1])
     #barPlot(csv2, 'Followers', 'Target')
     
