@@ -215,7 +215,6 @@ for epoch in range(epochs):
     print ("roc_auc_score v: " + str(roc_auc_score(v_y, v_y_score)))
     print ("accuracy v: " + str(accuracy_score(v_y, v_y_score)) ) 
         
-
     # fpr, tpr, threshold = roc_curve(y, y_score)
     # roc_auc = auc(fpr, tpr)
     #print(y, y_score)
